@@ -46,7 +46,7 @@ class SeguidorPared(Node):
         parametros = {
             # Geometría de los rayos
             'theta_deg': 45.0,        # ángulo entre los rayos a y b
-            'lookahead': 0.30,        # m: l, anticipación en D_{t+1}
+            'lookahead': 0.42,        # m: l, crece con v para mantener xhi = 0.67 et l =0.62*2 raz de v / raz de Kp
             'd_max': 1.5,             # m: más allá, el rayo b "no ve" pared
             'alfa_max_deg': 60.0,     # |α| mayor = el rayo a entra en una abertura
             'ancho_inicial': 0.50,    # m: ancho supuesto antes de medirlo
@@ -57,7 +57,7 @@ class SeguidorPared(Node):
             'integral_max': 0.2,      # m·s: anti-windup
             'w_max': 3.0,             # rad/s (el plugin admite 4.0)
             # Velocidad
-            'v_max': 0.5,             # m/s en recta
+            'v_max': 1.0,             # m/s en recta (limite del enunciado)
             'v_min': 0.08,            # m/s
             'k_curva': 0.7,           # reducción de v con |ω|/w_max
             'k_frente': 1.0,          # 1/s: v ≤ k_frente · distancia libre al frente

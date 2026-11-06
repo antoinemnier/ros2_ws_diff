@@ -52,6 +52,8 @@ class VueltasOdom(Node):
         self.declare_parameter('x_linea', 0.0)        # m: línea de salida/meta (x = 0)
         self.declare_parameter('y_linea_max', 1.0)    # m: el cruce solo cuenta en la recta principal
         self.declare_parameter('x_rearme', -2.0)      # m: hay que pasar por aquí para contar otra vuelta
+        # Enunciado: odometría del nodo de cinemática (promedio de las 2 ruedas de cada lado)
+        self.declare_parameter('topic_odom', 'odom_kinematic')        
         self.declare_parameter('carpeta_csv', os.path.expanduser('~/Robotica/ros2_ws_diff/resultados'))
 
         gp = self.get_parameter
@@ -83,7 +85,7 @@ class VueltasOdom(Node):
         self.csv.writerow(['t', 'x_real', 'y_real', 'psi_real',
                            'x_odom', 'y_odom', 'psi_odom', 'vuelta'])
 
-        self.create_subscription(Odometry, 'odom', self.cb_odom, 10)
+        self.create_subscription(Odometry, gp('topic_odom').value, self.cb_odom, 10)
         self.create_subscription(PoseStamped, 'pose_real', self.cb_pose, 10)
         self.get_logger().info(f'Cronómetro listo: {self.n_vueltas} vueltas | CSV: {self.ruta_csv}')
 
