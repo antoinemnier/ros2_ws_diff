@@ -1,14 +1,22 @@
 import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import ExecuteProcess
+from launch.actions import ExecuteProcess, DeclareLaunchArgument, AppendEnvironmentVariable
 from launch_ros.actions import Node
-from launch.substitutions import Command
+from launch.substitutions import Command, LaunchConfiguration, PythonExpression
 
 def generate_launch_description():
     pkg = get_package_share_directory('mi_robot_diferencial')
     xacro_path = os.path.join(pkg, 'urdf', 'mi_robot.urdf.xacro')
-    world_path = os.path.join(pkg, 'worlds', 'pista.sdf')
+    pista = LaunchConfiguration('pista')
+    modo =  LaunchConfiguration('modo') # para la etapa AEB
+
+    #propria -> pista.sdf (se reemplazara por nuestra pista CAD)
+    mundo_comp = os.path.join(pkg, 'worlds', 'pista_competencia.sdf')
+    mundo_propio = os.path.join(pkg, 'worlds', 'pista.sdf')
+    world_path = PythonExpression([ "'", mundo_comp, "' if '", pista, "' == 'competencia' else '", mundo_propio, "'"])
+    # Pose inicial reglamentaria en competencia : x = -0.6, y = 0, yaw = 0
+    x_spawn = PythonExpression(["'-0.60' if '", pista, "' == 'competencia' else '0.00'"])
     bridge_config = os.path.join(pkg, 'config', 'bridge.yaml')
     rviz_config = os.path.join(pkg, 'config', 'control.rviz')
 
@@ -16,6 +24,10 @@ def generate_launch_description():
     robot_description = Command(['xacro ', xacro_path])
 
     return LaunchDescription([
+        DeclareLaunchArgument('pista', default_value='propia', choices=['propia', 'competencia'], description='Mundo a cargar'),
+        DeclareLaunchArgument('modo', default_value='teleop', choices=['teleop', 'auto'], description='Modo de control del robot'),
+        # PAra que Gazebo encuentre model://pista_competencia
+        AppendEnvironmentVariable(name='GZ_SIM_RESOURCE_PATH', value=os.path.join(pkg, 'models')),
         ExecuteProcess(
             cmd=['gz', 'sim', '-v4', world_path],
             output='screen'
@@ -28,7 +40,7 @@ def generate_launch_description():
         Node(
             package='ros_gz_sim',
             executable='create',
-            arguments=['-topic', 'robot_description', '-name', 'mi_robot', '-z', '0.1']
+            arguments=['-topic', 'robot_description', '-name', 'mi_robot', '-x', x_spawn, '-y', '0.0', '-z', '0.01', '-Y', '0.0']
         ),
         Node(
             package='ros_gz_bridge',

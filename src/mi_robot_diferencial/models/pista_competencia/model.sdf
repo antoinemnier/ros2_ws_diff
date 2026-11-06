@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<sdf version="1.9">
+  <model name="pista_competencia">
+    <static>true</static>
+    <link name="link">
+      <collision name="collision">
+        <geometry>
+          <mesh><uri>model://pista_competencia/meshes/pista_competencia.stl</uri></mesh>
+        </geometry>
+      </collision>
+      <visual name="visual">
+        <geometry>
+          <mesh><uri>model://pista_competencia/meshes/pista_competencia.stl</uri></mesh>
+        </geometry>
+        <material>
+          <ambient>0.6 0.6 0.6 1</ambient>
+          <diffuse>0.7 0.7 0.7 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf>

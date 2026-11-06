@@ -7,8 +7,8 @@ from rclpy.node import Node
 from nav_msgs.msg import Odometry
 from sensor_msgs.msg import JointState
 
-RADIO = 0.05
-SEPARACION = 0.25
+RADIO = 0.0245
+SEPARACION = 0.134
 
 
 def envolver(angulo):
@@ -58,12 +58,11 @@ class CompararOdom(Node):
     def cb_joints(self, msg):
         # Lecture par nom : l'ordre du message peut varier
         try:
-            indice_d = msg.name.index('joint_rueda_der')
-            indice_i = msg.name.index('joint_rueda_izq')
-
-            wd = msg.velocity[indice_d]
-            wi = msg.velocity[indice_i]
-        except (ValueError, IndexError):
+            vel = dict(zip(msg.name,msg.velocity))
+            #Skid-seet: promedio de las dos ruedas de cada lado
+            wd = (vel['rueda_del_der_joint'] + vel['rueda_tras_der_joint']) / 2.0
+            wi = (vel['rueda_del_izq_joint'] + vel['rueda_tras_izq_joint']) / 2.0
+        except KeyError:
             return
 
         # Temps des mesures, en secondes
