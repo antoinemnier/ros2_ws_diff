@@ -146,3 +146,118 @@ disponible en el Notion de la asignatura, semana 12.
 Se utilizó asistencia de IA para comprender errores, revisar código
 y organizar la documentación. Los cambios se probaron en simulación.
 
+## Instalación
+
+Probado en Ubuntu 24.04 con ROS 2 Jazzy y Gazebo Harmonic.
+
+### 1. Dependencias
+
+```bash
+sudo apt update
+```
+
+```bash
+sudo apt install -y ros-jazzy-ros-gz ros-jazzy-twist-mux ros-jazzy-teleop-twist-keyboard ros-jazzy-xacro ros-jazzy-robot-state-publisher ros-jazzy-rviz2 python3-numpy python3-matplotlib xterm
+```
+
+- `xterm`: ventana donde se abre la teleoperación (`modo:=teleop`).
+- `python3-matplotlib`: solo para las gráficas (`graficar_vueltas.py`).
+
+### 2. Clonar y compilar
+
+```bash
+mkdir -p ~/Robotica
+cd ~/Robotica
+git clone https://github.com/antoinemnier/ros2_ws_diff.git
+cd ros2_ws_diff
+source /opt/ros/jazzy/setup.bash
+colcon build --symlink-install
+source install/setup.bash
+```
+
+Compilar siempre desde la raíz del workspace (`ros2_ws_diff`), nunca desde `src/`.
+En cada terminal nueva: `source /opt/ros/jazzy/setup.bash` y luego `source install/setup.bash`.
+
+### 3. (Opcional) Aislar la simulación en una red compartida
+
+```bash
+export ROS_DOMAIN_ID=26
+export GZ_PARTITION=antoine_diff
+```
+
+## Ejecución (un solo launch)
+
+```bash
+ros2 launch mi_robot_diferencial mi_robot.launch.py pista:=competencia modo:=auto
+```
+
+| Argumento | Valores | Descripción |
+|---|---|---|
+| `pista` | `competencia` / `propia` | Pista del profesor o pista propia (STL SolidWorks) |
+| `modo` | `auto` / `teleop` | Seguidor de pared (PID) o teclado |
+
+Cadena de comandos: `/cmd_vel_teleop` (prioridad 100) y `/cmd_vel_auto` (prioridad 10)
+→ `twist_mux` → `/cmd_vel_mux` → `aeb.py` → `/cmd_vel`.
+
+En `modo:=teleop`, el teclado solo funciona con la ventana **xterm** seleccionada
+(`i` avanzar, `,` retroceder, `j`/`l` girar, `k` parar).
+
+## Resultados
+
+El nodo `vueltas_odom` cronometra las vueltas con `/clock` y guarda un CSV en
+`~/Robotica/ros2_ws_diff/resultados/` (carpeta creada automáticamente;
+se puede cambiar con el parámetro `carpeta_csv`).
+
+Últimas 3 vueltas de la última ejecución:
+
+```bash
+grep -rh "^
+
+$$
+WARN
+$$
+
+.*VUELTA" "$(ls -td ~/.ros/log/*/ | head -n 1)"
+```
+
+Resumen final:
+
+```bash
+grep -rh -A 8 "RESULTADO" "$(ls -td ~/.ros/log/*/ | head -n 1)"
+```
+
+Gráficas (trayectoria real vs odometría y error por vuelta):
+
+```bash
+python3 src/mi_robot_diferencial/scripts/graficar_vueltas.py resultados/<archivo>.csv --titulo "Pista de competencia" --sin_mostrar
+```
+
+## Comandos útiles
+
+Posición real del robot en Gazebo:
+
+```bash
+gz model -m mi_robot -p
+```
+
+Prueba del AEB: poner un obstáculo en la recta principal (pista de competencia, x = 5 m):
+
+```bash
+ros2 run ros_gz_sim create -file $(ros2 pkg prefix --share mi_robot_diferencial)/models/obstaculo_aeb/model.sdf -name obstaculo -x 5.0 -y 0.0 -z 0.0
+```
+
+Quitar el obstáculo (en la pista propia, reemplazar `pista_competencia` por `pista_propia`):
+
+```bash
+gz service -s /world/pista_competencia/remove --reqtype gz.msgs.Entity --reptype gz.msgs.Boolean --timeout 1000 --req 'name: "obstaculo" type: MODEL'
+```
+
+Estado del AEB:
+
+```bash
+ros2 topic echo /aeb/activo
+```
+
+```bash
+ros2 topic echo /aeb/ttc_min
+```
