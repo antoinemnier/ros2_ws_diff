@@ -29,6 +29,7 @@ install(DIRECTORY urdf worlds config launch models
 
 install(PROGRAMS
   scripts/comparar_odom.py
+  scripts/aeb.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

@@ -22,7 +22,7 @@ def generate_launch_description():
 
 
     robot_description = Command(['xacro ', xacro_path])
-
+    
     return LaunchDescription([
         DeclareLaunchArgument('pista', default_value='propia', choices=['propia', 'competencia'], description='Mundo a cargar'),
         DeclareLaunchArgument('modo', default_value='teleop', choices=['teleop', 'auto'], description='Modo de control del robot'),
@@ -59,5 +59,10 @@ def generate_launch_description():
             arguments=['-d', rviz_config],
             parameters=[{'use_sim_time': True}],
         ),
-
+        Node(
+            package='mi_robot_diferencial',
+            executable='aeb.py',
+            parameters=[{'use_sim_time': True}],
+            output='screen',
+        ),
     ])

@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<sdf version="1.9">
+  <!-- Obstáculo de prueba para el AEB (estático: el robot no puede empujarlo) -->
+  <model name="obstaculo_aeb">
+    <static>true</static>
+    <link name="caja">
+      <!-- Alto 0.30 m > plano del LiDAR (0.108 m) para que sea visible -->
+      <pose>0 0 0.15 0 0 0</pose>
+      <collision name="colision">
+        <geometry><box><size>0.10 0.30 0.30</size></box></geometry>
+      </collision>
+      <visual name="visual">
+        <geometry><box><size>0.10 0.30 0.30</size></box></geometry>
+        <material>
+          <ambient>0.9 0.1 0.1 1</ambient>
+          <diffuse>0.9 0.1 0.1 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf>
