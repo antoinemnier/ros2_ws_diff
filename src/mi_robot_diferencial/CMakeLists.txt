@@ -31,6 +31,7 @@ install(PROGRAMS
   scripts/comparar_odom.py
   scripts/aeb.py
   scripts/seguidor_pared.py
+  scripts/vueltas_odom.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

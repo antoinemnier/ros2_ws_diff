@@ -94,5 +94,13 @@ def generate_launch_description():
             parameters=[{'use_sim_time': True}],
             output='screen',
             condition=IfCondition(es_auto),
-        )
+        ),
+        # Cronómetro de vueltas (/clock) y error de la odometría frente a la pose real
+        Node(
+            package='mi_robot_diferencial',
+            executable='vueltas_odom.py',
+            name='vueltas_odom',
+            parameters=[{'use_sim_time': True}],
+            output='screen',
+        ),
     ])
