@@ -13,7 +13,7 @@ def generate_launch_description():
     modo =  LaunchConfiguration('modo') # para la etapa AEB
     twist_mux_config = os.path.join(pkg, 'config', 'twist_mux.yaml')
     es_teleop = PythonExpression(["'", modo, "' == 'teleop'"])
-
+    es_auto = PythonExpression(["'", modo, "' == 'auto'"])
     #propria -> pista.sdf (se reemplazara por nuestra pista CAD)
     mundo_comp = os.path.join(pkg, 'worlds', 'pista_competencia.sdf')
     mundo_propio = os.path.join(pkg, 'worlds', 'pista.sdf')
@@ -88,4 +88,11 @@ def generate_launch_description():
             condition=IfCondition(es_teleop),
         ),
         # modo:=auto -> aquí irá el seguidor de pared (siguiente etapa)
+        Node(
+            package='mi_robot_diferencial',
+            executable='seguidor_pared.py',
+            parameters=[{'use_sim_time': True}],
+            output='screen',
+            condition=IfCondition(es_auto),
+        )
     ])

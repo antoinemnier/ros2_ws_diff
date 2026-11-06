@@ -30,6 +30,7 @@ install(DIRECTORY urdf worlds config launch models
 install(PROGRAMS
   scripts/comparar_odom.py
   scripts/aeb.py
+  scripts/seguidor_pared.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
