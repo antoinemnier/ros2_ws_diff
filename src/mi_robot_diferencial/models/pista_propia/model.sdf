@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<sdf version="1.9">
+  <!-- Pista propia: mesh STL en metros (origen = centro de la línea de salida/meta) -->
+  <model name="pista_propia">
+    <static>true</static>
+    <link name="pista">
+      <collision name="colision_muros">
+        <geometry>
+          <mesh><uri>model://pista_propia/meshes/pista_propia.stl</uri></mesh>
+        </geometry>
+      </collision>
+      <visual name="visual_muros">
+        <geometry>
+          <mesh><uri>model://pista_propia/meshes/pista_propia.stl</uri></mesh>
+        </geometry>
+        <material>
+          <ambient>0.4 0.4 0.45 1</ambient>
+          <diffuse>0.6 0.6 0.65 1</diffuse>
+        </material>
+      </visual>
+      <!-- Línea de salida/meta en x = 0: solo visual (sin colisión, el robot pasa por encima) -->
+      <visual name="linea_meta">
+        <pose>0 0 0.001 0 0 0</pose>
+        <geometry><box><size>0.05 0.75 0.002</size></box></geometry>
+        <material>
+          <ambient>1 1 1 1</ambient>
+          <diffuse>1 1 1 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf>

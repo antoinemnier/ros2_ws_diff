@@ -5,6 +5,7 @@ from launch.actions import ExecuteProcess, DeclareLaunchArgument, AppendEnvironm
 from launch_ros.actions import Node
 from launch.substitutions import Command, LaunchConfiguration, PythonExpression
 from launch.conditions import IfCondition
+from launch_ros.parameter_descriptions import ParameterValue
 
 def generate_launch_description():
     pkg = get_package_share_directory('mi_robot_diferencial')
@@ -19,7 +20,10 @@ def generate_launch_description():
     mundo_propio = os.path.join(pkg, 'worlds', 'pista.sdf')
     world_path = PythonExpression([ "'", mundo_comp, "' if '", pista, "' == 'competencia' else '", mundo_propio, "'"])
     # Pose inicial reglamentaria en competencia : x = -0.6, y = 0, yaw = 0
-    x_spawn = PythonExpression(["'-0.60' if '", pista, "' == 'competencia' else '0.00'"])
+    x_spawn = '-0.60' # ambas pistas : 0.60 m detras de la linea de meta (x = 0)
+    # Rearme del cronómetro: el robot debe pasar por x < x_rearme antes de contar otra vuelta
+    
+    x_rearme = PythonExpression(["-2.0 if '", pista, "' == 'competencia' else -1.0"])
     bridge_config = os.path.join(pkg, 'config', 'bridge.yaml')
     rviz_config = os.path.join(pkg, 'config', 'control.rviz')
 
@@ -100,7 +104,7 @@ def generate_launch_description():
             package='mi_robot_diferencial',
             executable='vueltas_odom.py',
             name='vueltas_odom',
-            parameters=[{'use_sim_time': True}],
+            parameters=[{'use_sim_time': True, 'x_rearme': ParameterValue(x_rearme, value_type=float)}],
             output='screen',
         ),
     ])
