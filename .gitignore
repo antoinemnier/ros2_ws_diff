@@ -1,5 +1,7 @@
 build/
 install/
 log/
+.vscode/
 frames_*
 __pycache__/
+*.pyc
