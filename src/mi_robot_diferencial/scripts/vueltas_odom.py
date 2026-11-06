@@ -75,6 +75,10 @@ class VueltasOdom(Node):
         self.dist_odom = 0.0
         self.terminado = False
         self.n_muestras = 0
+        # Rumbo acumulado SIN envolver (rad): permite ver el crecimiento del error vuelta a vuelta
+        self.giro_real = 0.0
+        self.giro_odom = 0.0
+        self.psi_prev = None        # (ψ_real, ψ_odom) de la muestra anterior, envueltos
 
         # ---------------- CSV ----------------
         carpeta = gp('carpeta_csv').value
@@ -119,6 +123,13 @@ class VueltasOdom(Node):
                 f'y0 = {self.offset[1]:+.3f} m, ψ0 = {math.degrees(psi0):+.1f}°')
         xw, yw, psiw = self.odom_en_mundo()
 
+        # 1b) Acumular el giro sin envolver: cada incremento es pequeño (< 0.2 rad a 30 Hz),
+        #     así que envolver(Δψ) es exacto aunque ψ salte de +180° a -180°
+        if self.psi_prev is not None:
+            self.giro_real += envolver(psir - self.psi_prev[0])
+            self.giro_odom += envolver(psiw - self.psi_prev[1])
+        self.psi_prev = (psir, psiw)
+ 
         # 2) Distancias recorridas (real y según la odometría)
         if self.prev is not None:
             self.dist_real += math.hypot(xr - self.prev[1], yr - self.prev[2])
@@ -155,7 +166,7 @@ class VueltasOdom(Node):
         self.cruces.append(t_cruce)
         n = len(self.cruces) - 1                       # vueltas completadas
         e_pos = math.hypot(xw - xr, yw - yr)
-        e_psi = math.degrees(envolver(psiw - psir))
+        e_psi = math.degrees(self.giro_odom - self.giro_real)    # sin envolver: crece vuelta a vuelta
 
         if n == 0:
             self.get_logger().info(f'SALIDA: cruce de la línea en t = {t_cruce:.2f} s')
@@ -164,9 +175,9 @@ class VueltasOdom(Node):
         t_vuelta = t_cruce - self.cruces[-2]
         self.get_logger().warn(
             f'VUELTA {n}/{self.n_vueltas}: {t_vuelta:.2f} s | '
-            f'error odom: posición {e_pos:.3f} m, rumbo {e_psi:+.1f}° | '
+            f'error odom: posición {e_pos:.3f} m, rumbo {e_psi:+.1f}° (acumulado) | '
+            f'giro real {math.degrees(self.giro_real):+.1f}°, odom {math.degrees(self.giro_odom):+.1f}° | '
             f'distancia real {self.dist_real:.1f} m, odom {self.dist_odom:.1f} m')
-
         if n >= self.n_vueltas:
             self.terminar(t_cruce, e_pos, e_psi)
 
