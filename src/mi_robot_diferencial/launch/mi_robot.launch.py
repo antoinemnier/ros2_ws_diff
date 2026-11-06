@@ -4,12 +4,15 @@ from launch import LaunchDescription
 from launch.actions import ExecuteProcess, DeclareLaunchArgument, AppendEnvironmentVariable
 from launch_ros.actions import Node
 from launch.substitutions import Command, LaunchConfiguration, PythonExpression
+from launch.conditions import IfCondition
 
 def generate_launch_description():
     pkg = get_package_share_directory('mi_robot_diferencial')
     xacro_path = os.path.join(pkg, 'urdf', 'mi_robot.urdf.xacro')
     pista = LaunchConfiguration('pista')
     modo =  LaunchConfiguration('modo') # para la etapa AEB
+    twist_mux_config = os.path.join(pkg, 'config', 'twist_mux.yaml')
+    es_teleop = PythonExpression(["'", modo, "' == 'teleop'"])
 
     #propria -> pista.sdf (se reemplazara por nuestra pista CAD)
     mundo_comp = os.path.join(pkg, 'worlds', 'pista_competencia.sdf')
@@ -65,4 +68,24 @@ def generate_launch_description():
             parameters=[{'use_sim_time': True}],
             output='screen',
         ),
+        # Multiplexor: teleop (prioridad 100) y autónomo (10) -> /cmd_vel_mux
+        Node(
+            package='twist_mux',
+            executable='twist_mux',
+            name='twist_mux',
+            parameters=[twist_mux_config, {'use_sim_time': True}],
+            remappings=[('cmd_vel_out', 'cmd_vel_mux')],
+            output='screen',
+        ),
+        # modo:=teleop -> teclado en una ventana xterm aparte (necesita su propia terminal)
+        Node(
+            package='teleop_twist_keyboard',
+            executable='teleop_twist_keyboard',
+            name='teleop',
+            prefix='xterm -fa Monospace -fs 12 -e',
+            parameters=[{'stamped': False}],
+            remappings=[('cmd_vel', 'cmd_vel_teleop')],
+            condition=IfCondition(es_teleop),
+        ),
+        # modo:=auto -> aquí irá el seguidor de pared (siguiente etapa)
     ])

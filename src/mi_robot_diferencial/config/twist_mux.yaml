@@ -1,0 +1,15 @@
+# twist_mux: elige UNA fuente de velocidad y la publica en /cmd_vel_mux (-> AEB -> /cmd_vel)
+# Gana la fuente de mayor prioridad cuyo último mensaje tenga menos de 'timeout' segundos.
+twist_mux:
+  ros__parameters:
+    # Jazzy usa TwistStamped por defecto; todos nuestros nodos usan Twist simple
+    use_stamped: false
+    topics:
+      teleop:
+        topic: cmd_vel_teleop
+        timeout: 0.6      # s: igual que el "hombre muerto" del AEB (repetición del teclado ~0.5 s)
+        priority: 100     # el humano siempre puede retomar el control
+      autonomo:
+        topic: cmd_vel_auto
+        timeout: 0.5      # s: si el seguidor de pared deja de publicar, se descarta
+        priority: 10
